@@ -1,10 +1,11 @@
-package com.example.newsapp
+package com.example.newsapp.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 
 import androidx.navigation.ui.setupWithNavController
+import com.example.newsapp.R
 
 import com.example.newsapp.databinding.ActivityNewsBinding
 
