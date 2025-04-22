@@ -12,9 +12,10 @@ import com.example.newsapp.databinding.ItemArticlePreviewBinding
 import com.example.newsapp.model.Article
 
 class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
-    private lateinit var binding: ItemArticlePreviewBinding
 
-    inner class ArticleViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    inner class ArticleViewHolder(val binding: ItemArticlePreviewBinding) :
+        RecyclerView.ViewHolder(binding.root)
+
 
     private val diffCallback = object : DiffUtil.ItemCallback<Article>() {
         override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
@@ -25,18 +26,19 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
             return oldItem == newItem  // So sánh nội dung
         }
     }
-    
+
     // so sánh 2 danh sách (cũ và mới) trong background thread, giúp UI mượt mà hơn.
-    private val differ = AsyncListDiffer(
+    val differ = AsyncListDiffer(
         this,
         diffCallback
     )
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_article_preview, parent, false)
-        return ArticleViewHolder(view)
+        val binding =
+            ItemArticlePreviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ArticleViewHolder(binding)
     }
+
 
     override fun getItemCount(): Int {
         return differ.currentList.size
@@ -44,18 +46,14 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.ArticleViewHolder>() {
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
         val article = differ.currentList[position]
-        holder.itemView.apply {
-            // Load ảnh bằng Glide
-            Glide.with(this).load(article.urlToImage).into(binding.ivArticleImage)
+        holder.binding.apply {
+            Glide.with(root).load(article.urlToImage).into(ivArticleImage)
+            tvSource.text = article.source?.name
+            tvTitle.text = article.title
+            tvDescription.text = article.description
+            tvPublishedAt.text = article.publishedAt
 
-            // Gán dữ liệu vào các TextView
-            binding.tvSource.text = article.source?.name
-            binding.tvTitle.text = article.title
-            binding.tvDescription.text = article.description
-            binding.tvPublishedAt.text = article.publishedAt
-
-            // Xử lý sự kiện click
-            setOnClickListener {
+            root.setOnClickListener {
                 onItemClickListener?.invoke(article)
             }
         }
