@@ -19,4 +19,8 @@ interface ArticleDao {
 
     @Delete
     suspend fun deleteArticle(article: Article)
+
+    // Thêm hàm kiểm tra bài viết theo url
+    @Query("SELECT EXISTS(SELECT 1 FROM articles WHERE url = :url)")
+    suspend fun isArticleExist(url: String): Long
 }

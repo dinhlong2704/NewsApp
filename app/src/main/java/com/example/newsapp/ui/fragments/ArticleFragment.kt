@@ -12,6 +12,7 @@ import com.example.newsapp.databinding.FragmentArticleBinding
 import com.example.newsapp.databinding.FragmentBreakingNewsBinding
 import com.example.newsapp.ui.NewsActivity
 import com.example.newsapp.ui.NewsViewModel
+import com.google.android.material.snackbar.Snackbar
 
 class ArticleFragment : Fragment(R.layout.fragment_article) {
     private lateinit var viewModel: NewsViewModel
@@ -35,6 +36,21 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
             webViewClient = WebViewClient()
             loadUrl(article.url)
         }
+        binding.fab.setOnClickListener {
+            binding.fab.isEnabled = false
+            viewModel.saveArticle(article)
+            // Kiểm tra xem bài viết đã tồn tại chưa
+            viewModel.isArticleExist(article.url).observe(viewLifecycleOwner) { isExist ->
+                val message = if (isExist) {
+                    "Article already saved"
+                } else {
+                    "Article saved successfully"
+                }
+                Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
+                binding.fab.isEnabled = true
+            }
+        }
     }
+
 
 }
