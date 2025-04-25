@@ -6,7 +6,6 @@ import android.net.ConnectivityManager
 import android.net.ConnectivityManager.TYPE_ETHERNET
 import android.net.ConnectivityManager.TYPE_MOBILE
 import android.net.ConnectivityManager.TYPE_WIFI
-import android.net.NetworkCapabilities
 import android.net.NetworkCapabilities.TRANSPORT_CELLULAR
 import android.net.NetworkCapabilities.TRANSPORT_ETHERNET
 import android.net.NetworkCapabilities.TRANSPORT_WIFI
@@ -15,7 +14,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.NewsAplication
 import com.example.newsapp.model.Article
@@ -25,7 +23,7 @@ import com.example.newsapp.util.Resource
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.io.IOException
-import kotlin.jvm.Throws
+
 
 class NewsViewModel(app: Application, private val newsRepository: NewsRepository) :
     AndroidViewModel(app) {
@@ -35,6 +33,7 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     val searchNews: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
     var searchNewsPage = 1
     var searchNewsResponse: NewsResponse? = null
+    var currentSearchQuery: String? = null
 
     init {
         getBreakingNews("us")
@@ -45,10 +44,10 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     }
 
     fun searchNews(searchQuery: String) = viewModelScope.launch {
-        // Reset page và response nếu query thay đổi
-        if (searchNewsResponse?.articles?.isEmpty() == false) {
+        if (searchQuery != currentSearchQuery) {
             searchNewsPage = 1
             searchNewsResponse = null
+            currentSearchQuery = searchQuery
         }
         safeSearchNewsCall(searchQuery)
     }
@@ -56,6 +55,10 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     private fun handleBreakingNewsResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
+                Log.d(
+                    "BreakingNews",
+                    "Page ${breakingNewsPage - 1}: ${resultResponse.articles.size} articles"
+                )
                 breakingNewsPage++
                 if (breakingNewsResponse == null) {
                     breakingNewsResponse = resultResponse
@@ -74,6 +77,10 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     private fun handleSearchNewsResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
+                Log.d(
+                    "SearchgNews",
+                    "Page ${searchNewsPage - 1}: ${resultResponse.articles.size} articles"
+                )
                 searchNewsPage++
                 if (searchNewsResponse == null) {
                     searchNewsResponse = resultResponse

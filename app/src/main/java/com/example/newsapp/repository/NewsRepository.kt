@@ -1,13 +1,9 @@
 package com.example.newsapp.repository
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.example.newsapp.api.RetrofitInstance
 import com.example.newsapp.db.ArticleDatabase
 import com.example.newsapp.model.Article
 import com.example.newsapp.model.NewsResponse
-import com.example.newsapp.ui.NewsViewModel
 import retrofit2.Response
 
 class NewsRepository(private val db: ArticleDatabase) {
@@ -17,9 +13,7 @@ class NewsRepository(private val db: ArticleDatabase) {
         api.getBreakingNews(countryCode, pageNumber)
 
     suspend fun searchNews(searchQuery: String, pageNumber: Int): Response<NewsResponse> {
-        Log.d("NewsRepository", "searchNews called with query: $searchQuery, page: $pageNumber")
         val response = api.searchForNews(searchQuery, pageNumber)
-        Log.d("NewsRepository", "searchNews response: ${response.code()} - ${response.body()}")
         return response
     }
 

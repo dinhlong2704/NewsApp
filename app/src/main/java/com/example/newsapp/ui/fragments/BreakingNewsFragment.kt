@@ -1,7 +1,6 @@
 package com.example.newsapp.ui.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -58,10 +57,14 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                     hideProgressBar()
                     response.data?.let { newsResponse ->
                         newsAdapter.differ.submitList(newsResponse.articles.toList())
-                        val totalPages = newsResponse.totalResults / QUERY_PAGE_SIZE + 2
+                        val totalPages =
+                            (newsResponse.totalResults + QUERY_PAGE_SIZE - 1) / QUERY_PAGE_SIZE
                         isLastPage = viewModel.breakingNewsPage == totalPages
-                        if (isLastPage) {
-                            binding.rvBreakingNews.setPadding(0,0,0,0)
+                        if (newsResponse.articles.size >= newsResponse.totalResults) {
+                            isLastPage = true
+                            binding.rvBreakingNews.setPadding(0, 0, 0, 0)
+                        } else {
+                            isLastPage = viewModel.breakingNewsPage > totalPages
                         }
                     }
                 }
@@ -69,7 +72,8 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                 is Resource.Error -> {
                     hideProgressBar()
                     response.message?.let { message ->
-                        Toast.makeText(activity, "An error occurred: ${message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(activity, "An error occurred: ${message}", Toast.LENGTH_LONG)
+                            .show()
                     }
                 }
 
@@ -102,9 +106,8 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
             val isNotLoadingAndNotLastPage = !isLoading && !isLastPage
             val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
             val isNotAtBeginning = firstVisibleItemPosition >= 0
-            val isTotalMoreThanVisible = totalItemCount >= QUERY_PAGE_SIZE
-            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning &&
-                    isTotalMoreThanVisible && isScrolling
+            val shouldPaginate =
+                isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning && isScrolling
             if (shouldPaginate) {
                 viewModel.getBreakingNews("us")
                 isScrolling = false

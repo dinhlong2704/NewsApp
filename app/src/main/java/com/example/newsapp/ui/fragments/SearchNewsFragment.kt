@@ -1,7 +1,6 @@
 package com.example.newsapp.ui.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -57,44 +56,40 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
         var job: Job? = null
         binding.etSearch.addTextChangedListener { editable ->
-            Log.d("SearchNewsFragment", "Text changed: ${editable.toString()}")
             job?.cancel()
             job = MainScope().launch {
                 delay(SEARCH_NEWS_TIME_DELAY)
                 editable?.let {
                     if (editable.toString().isNotEmpty()) {
-                        Log.d("SearchNewsFragment", "Calling searchNews with query: ${editable.toString()}")
                         viewModel.searchNews(editable.toString())
                     } else {
-                        Log.d("SearchNewsFragment", "Query is empty, skipping search")
                     }
                 }
             }
         }
         viewModel.searchNews.observe(viewLifecycleOwner, Observer { response ->
-            Log.d("SearchNewsFragment", "Observer triggered with response: $response")
             when (response) {
                 is Resource.Success -> {
-                    Log.d("SearchNewsFragment", "Success: ${response.data?.articles?.size} articles")
                     hideProgressBar()
                     response.data?.let { newsResponse ->
                         newsAdapter.differ.submitList(newsResponse.articles.toList())
-                        val totalPages = newsResponse.totalResults / QUERY_PAGE_SIZE + 2
+                        val totalPages = (newsResponse.totalResults + QUERY_PAGE_SIZE - 1) / QUERY_PAGE_SIZE
                         isLastPage = viewModel.searchNewsPage == totalPages
-                        if (isLastPage) {
+                        if (newsResponse.articles.size >= newsResponse.totalResults) {
+                            isLastPage = true
                             binding.rvSearchNews.setPadding(0, 0, 0, 0)
+                        } else {
+                            isLastPage = viewModel.searchNewsPage > totalPages
                         }
                     }
                 }
                 is Resource.Error -> {
-                    Log.e("SearchNewsFragment", "Error: ${response.message}")
                     hideProgressBar()
                     response.message?.let { message ->
                         Toast.makeText(activity, "An error occurred: $message", Toast.LENGTH_LONG).show()
                     }
                 }
                 is Resource.Loading -> {
-                    Log.d("SearchNewsFragment", "Loading state")
                     showProgressBar()
                 }
             }
@@ -124,9 +119,7 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
             val isNotLoadingAndNotLastPage = !isLoading && !isLastPage
             val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
             val isNotAtBeginning = firstVisibleItemPosition >= 0
-            val isTotalMoreThanVisible = totalItemCount >= QUERY_PAGE_SIZE
-            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning &&
-                    isTotalMoreThanVisible && isScrolling
+            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning && isScrolling
             if (shouldPaginate) {
                 viewModel.searchNews(binding.etSearch.text.toString())
                 isScrolling = false
