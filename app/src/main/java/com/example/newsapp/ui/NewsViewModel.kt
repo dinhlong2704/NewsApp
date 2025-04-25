@@ -11,6 +11,7 @@ import android.net.NetworkCapabilities.TRANSPORT_CELLULAR
 import android.net.NetworkCapabilities.TRANSPORT_ETHERNET
 import android.net.NetworkCapabilities.TRANSPORT_WIFI
 import android.os.Build
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -44,6 +45,11 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     }
 
     fun searchNews(searchQuery: String) = viewModelScope.launch {
+        // Reset page và response nếu query thay đổi
+        if (searchNewsResponse?.articles?.isEmpty() == false) {
+            searchNewsPage = 1
+            searchNewsResponse = null
+        }
         safeSearchNewsCall(searchQuery)
     }
 
@@ -124,15 +130,20 @@ class NewsViewModel(app: Application, private val newsRepository: NewsRepository
     }
 
     private suspend fun safeSearchNewsCall(searchQuery: String) {
+        Log.d("NewsViewModel", "safeSearchNewsCall started with query: $searchQuery")
         searchNews.postValue(Resource.Loading())
         try {
             if (hasInternetConnection()) {
+                Log.d("NewsViewModel", "Internet available, calling API")
                 val response = newsRepository.searchNews(searchQuery, searchNewsPage)
-                searchNews.postValue(handleSearchNewsResponse(response)) // Xử lý response khi tìm kếm
+                Log.d("NewsViewModel", "API response: ${response.code()} - ${response.message()}")
+                searchNews.postValue(handleSearchNewsResponse(response))
             } else {
+                Log.d("NewsViewModel", "No internet connection")
                 searchNews.postValue(Resource.Error("No internet connection"))
             }
         } catch (t: Throwable) {
+            Log.e("NewsViewModel", "Error in safeSearchNewsCall: ${t.message}", t)
             when (t) {
                 is IOException -> searchNews.postValue(Resource.Error("Network Failure"))
                 else -> searchNews.postValue(Resource.Error("Conversion Error"))

@@ -1,5 +1,6 @@
 package com.example.newsapp.repository
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.newsapp.api.RetrofitInstance
@@ -15,8 +16,12 @@ class NewsRepository(private val db: ArticleDatabase) {
     suspend fun getBreakingNews(countryCode: String, pageNumber: Int) =
         api.getBreakingNews(countryCode, pageNumber)
 
-    suspend fun searchNews(countryCode: String, pageNumber: Int) =
-        api.searchForNews(countryCode, pageNumber)
+    suspend fun searchNews(searchQuery: String, pageNumber: Int): Response<NewsResponse> {
+        Log.d("NewsRepository", "searchNews called with query: $searchQuery, page: $pageNumber")
+        val response = api.searchForNews(searchQuery, pageNumber)
+        Log.d("NewsRepository", "searchNews response: ${response.code()} - ${response.body()}")
+        return response
+    }
 
     // Lưu bài viết
     suspend fun upserttArticle(article: Article) {

@@ -57,38 +57,44 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
         var job: Job? = null
         binding.etSearch.addTextChangedListener { editable ->
+            Log.d("SearchNewsFragment", "Text changed: ${editable.toString()}")
             job?.cancel()
             job = MainScope().launch {
                 delay(SEARCH_NEWS_TIME_DELAY)
                 editable?.let {
                     if (editable.toString().isNotEmpty()) {
+                        Log.d("SearchNewsFragment", "Calling searchNews with query: ${editable.toString()}")
                         viewModel.searchNews(editable.toString())
+                    } else {
+                        Log.d("SearchNewsFragment", "Query is empty, skipping search")
                     }
                 }
             }
         }
         viewModel.searchNews.observe(viewLifecycleOwner, Observer { response ->
+            Log.d("SearchNewsFragment", "Observer triggered with response: $response")
             when (response) {
                 is Resource.Success -> {
+                    Log.d("SearchNewsFragment", "Success: ${response.data?.articles?.size} articles")
                     hideProgressBar()
                     response.data?.let { newsResponse ->
                         newsAdapter.differ.submitList(newsResponse.articles.toList())
                         val totalPages = newsResponse.totalResults / QUERY_PAGE_SIZE + 2
                         isLastPage = viewModel.searchNewsPage == totalPages
                         if (isLastPage) {
-                        binding.rvSearchNews.setPadding(0,0,0,0)
-                    }
+                            binding.rvSearchNews.setPadding(0, 0, 0, 0)
+                        }
                     }
                 }
-
                 is Resource.Error -> {
+                    Log.e("SearchNewsFragment", "Error: ${response.message}")
                     hideProgressBar()
                     response.message?.let { message ->
-                        Toast.makeText(activity, "An error occurred: ${message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(activity, "An error occurred: $message", Toast.LENGTH_LONG).show()
                     }
                 }
-
                 is Resource.Loading -> {
+                    Log.d("SearchNewsFragment", "Loading state")
                     showProgressBar()
                 }
             }
