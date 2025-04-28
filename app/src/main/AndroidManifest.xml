@@ -9,14 +9,14 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/icon_gg"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/icon_gg"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat"
         tools:targetApi="31">
         <activity
-            android:name=".ui.NewsActivity"
+            android:name=".view.activity.SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.NewsApp">
@@ -24,6 +24,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.activity.SignInActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.NewsApp">
+        </activity>
+        <activity
+            android:name=".view.activity.NewsActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.NewsApp">
         </activity>
     </application>
 
