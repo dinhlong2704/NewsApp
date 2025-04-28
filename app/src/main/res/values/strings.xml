@@ -11,5 +11,10 @@
     <string name="Oldpassword">Old password</string>
     <string name="Newpassword">New password</string>
     <string name="confirmNewpassword">Confirm password</string>
-    <string name="web_client_id">849214732976-fc3tj9abda7bvf361o8tdorknjq46c5d.apps.googleusercontent.com</string>
+    <string name="web_client_id">849214732976-fc3tj9abda7bvf361o8tdorknjq46c5d.apps.googleusercontent.com</string>.
+    <string name="sign_in_button">Sign in with Google</string>
+    <string name="sign_out_button">Sign Out</string>
+    <string name="profile_picture_content_description">Profile picture</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
 </resources>
