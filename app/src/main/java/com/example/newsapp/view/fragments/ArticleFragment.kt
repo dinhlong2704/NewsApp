@@ -1,35 +1,29 @@
 package com.example.newsapp.view.fragments
 
-import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebViewClient
-import androidx.fragment.app.Fragment
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.navArgs
-import com.example.newsapp.R
 import com.example.newsapp.databinding.FragmentArticleBinding
+import com.example.newsapp.db.ArticleDatabase
+import com.example.newsapp.repository.NewsRepository
 import com.example.newsapp.view.activity.NewsActivity
 import com.example.newsapp.viewmodel.NewsViewModel
-import com.google.android.material.snackbar.Snackbar
+import com.example.newsapp.viewmodel.NewsViewModelProviderFactory
 
-class ArticleFragment : Fragment(R.layout.fragment_article) {
-    private lateinit var viewModel: NewsViewModel
-    private lateinit var binding: FragmentArticleBinding
+class ArticleFragment : BaseFragment<FragmentArticleBinding, NewsViewModel>() {
     private val args: ArticleFragmentArgs by navArgs<ArticleFragmentArgs>()
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentArticleBinding.inflate(inflater, container, false)
-        return binding.root
+
+    // Khởi tạo Factory ngay khi cần
+    override fun getViewModelFactory(): ViewModelProvider.Factory? {
+        val repository = NewsRepository(ArticleDatabase(requireContext()))
+        return NewsViewModelProviderFactory(requireActivity().application, repository)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun initView() {
         viewModel = (activity as NewsActivity).viewModel
-
         val article = args.article
         binding.webView.apply {
             webViewClient = WebViewClient()
@@ -45,10 +39,21 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
                 } else {
                     "Article saved successfully"
                 }
-                Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
+                Toast.makeText(this.context, message, Toast.LENGTH_SHORT).show()
                 binding.fab.isEnabled = true
             }
         }
+    }
+
+    override fun getClassViewModel(): Class<NewsViewModel> {
+        return NewsViewModel::class.java
+    }
+
+    override fun initViewBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentArticleBinding {
+        return FragmentArticleBinding.inflate(inflater, container, false)
     }
 
 

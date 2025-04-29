@@ -6,38 +6,34 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.R
 import com.example.newsapp.adapters.NewsAdapter
 import com.example.newsapp.databinding.FragmentBreakingNewsBinding
-import com.example.newsapp.view.activity.NewsActivity
+import com.example.newsapp.db.ArticleDatabase
+import com.example.newsapp.repository.NewsRepository
 import com.example.newsapp.viewmodel.NewsViewModel
 import com.example.newsapp.util.Constants.Companion.QUERY_PAGE_SIZE
 import com.example.newsapp.util.Resource
+import com.example.newsapp.viewmodel.NewsViewModelProviderFactory
 
 
-class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
-    private lateinit var binding: FragmentBreakingNewsBinding
-    private lateinit var viewModel: NewsViewModel
+class BreakingNewsFragment : BaseFragment<FragmentBreakingNewsBinding, NewsViewModel>() {
+
     lateinit var newsAdapter: NewsAdapter
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentBreakingNewsBinding.inflate(inflater, container, false)
-        return binding.root
+
+    // Khởi tạo Factory ngay khi cần
+    override fun getViewModelFactory(): ViewModelProvider.Factory? {
+        val repository = NewsRepository(ArticleDatabase(requireContext()))
+        return NewsViewModelProviderFactory(requireActivity().application, repository)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel = (activity as NewsActivity).viewModel
+    override fun initView() {
         setupRecyclerView()
-
         newsAdapter.setOnItemClickListener { article ->
             val bundle = Bundle().apply {
                 putSerializable("article", article)
@@ -80,6 +76,17 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
                 }
             }
         })
+    }
+
+    override fun getClassViewModel(): Class<NewsViewModel> {
+        return NewsViewModel::class.java
+    }
+
+    override fun initViewBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): FragmentBreakingNewsBinding {
+        return FragmentBreakingNewsBinding.inflate(inflater, container, false)
     }
 
     var isLoading = false
