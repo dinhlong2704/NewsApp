@@ -23,41 +23,38 @@ import com.example.newsapp.viewmodel.NewsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 
-class NewsActivity : AppCompatActivity() {
+class NewsActivity : BaseActivity<ActivityNewsBinding, NewsViewModel>() {
 
-    private lateinit var binding: ActivityNewsBinding
-    lateinit var viewModel: NewsViewModel
+
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var googleAuthUiClient: GoogleAuthUiClient
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Sử dụng View Binding để ánh xạ layout
-        binding = ActivityNewsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+
+    // Khởi tạo Factory ngay khi cần
+    override fun getViewModelFactory(): ViewModelProvider.Factory {
+        return NewsViewModelProviderFactory(
+            application,
+            NewsRepository(ArticleDatabase(this))
+        )
+    }
+
+    override fun initView() {
         // 2. Khởi tạo SignInClient
         val oneTapClient = Identity.getSignInClient(applicationContext)
 
         // 3. Khởi tạo GoogleAuthUiClient với 2 tham số
         googleAuthUiClient = GoogleAuthUiClient(
-            context = applicationContext,
-            oneTapClient = oneTapClient
+            context = applicationContext, oneTapClient = oneTapClient
         )
         // Lấy NavController từ NavHostFragment
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.newsNavHostFragment) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.newsNavHostFragment) as NavHostFragment
         val navController = navHostFragment.navController
 
         // Thiết lập BottomNavigationView với NavController
         binding.bottomNavigationView.setupWithNavController(navController)
-
-        // Khởi tạo Repository
-        val newsRepository = NewsRepository(ArticleDatabase(this))
-
-        // Khởi tạo ViewModel
-        val viewModelProviderFactory = NewsViewModelProviderFactory(application, newsRepository)
-        viewModel = ViewModelProvider(this, viewModelProviderFactory).get(NewsViewModel::class.java)
 
         // Drawer toggle setup
         toggle = ActionBarDrawerToggle(this, binding.drawerLayout, R.string.open, R.string.close)
@@ -67,7 +64,14 @@ class NewsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         setupDrawer()
+    }
 
+    override fun initViewBinding(): ActivityNewsBinding {
+        return ActivityNewsBinding.inflate(layoutInflater)
+    }
+
+    override fun initViewModel(): KClass<NewsViewModel> {
+        return NewsViewModel::class
     }
 
     private fun setupDrawer() {
@@ -77,7 +81,7 @@ class NewsActivity : AppCompatActivity() {
 
         // Load ảnh đại diện với Coil và crop hình tròn
         val userData = googleAuthUiClient.getSignedInUser()
-            userData?.let {
+        userData?.let {
             textViewUsername.text = it.username ?: "Unknown"
             it.profilePictureUrl?.let { url ->
                 imageViewAvatar.load(url) {
@@ -101,7 +105,6 @@ class NewsActivity : AppCompatActivity() {
 
 
     }
-
 
     private fun logout() {
         CoroutineScope(Dispatchers.Main).launch {

@@ -10,18 +10,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.newsapp.databinding.ActivityLogInBinding
 import com.example.newsapp.firebase.GoogleAuthUiClient
+import com.example.newsapp.viewmodel.CommonVM
+import com.example.newsapp.viewmodel.NewsViewModel
 import com.google.android.gms.auth.api.identity.Identity
 import com.example.newsapp.viewmodel.SignInViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 
-class SignInActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityLogInBinding
-    lateinit var viewModel: SignInViewModel
+class SignInActivity : BaseActivity<ActivityLogInBinding, SignInViewModel>() {
     private lateinit var googleAuthUiClient: GoogleAuthUiClient
     var tenThongTinDangNhap: String = "login"
+
     override fun onPause() {
         super.onPause()
         saveLogInState()
@@ -49,11 +51,8 @@ class SignInActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityLogInBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
+    override fun initView() {
         val email = binding.etUserLogin.text.toString()
         val password = binding.etPassWordLogin.text.toString()
 
@@ -94,20 +93,28 @@ class SignInActivity : AppCompatActivity() {
             val intent = Intent(this, ForgetPassActivity::class.java);
             startActivity(intent);
         }
-        binding.btnGoogle.setOnClickListener{
+        binding.btnGoogle.setOnClickListener {
             loginWithGG()
         }
     }
 
+    override fun initViewBinding(): ActivityLogInBinding {
+        return ActivityLogInBinding.inflate(layoutInflater)
+    }
+
+    override fun initViewModel(): KClass<SignInViewModel> {
+        return SignInViewModel::class
+    }
+
     private fun loginWithGG() {
-            CoroutineScope(Dispatchers.Main).launch {
-                val signInIntentSender = googleAuthUiClient.signIn()
-                signInIntentSender?.let {
-                    signInLauncher.launch(
-                        IntentSenderRequest.Builder(it).build()
-                    )
-                }
+        CoroutineScope(Dispatchers.Main).launch {
+            val signInIntentSender = googleAuthUiClient.signIn()
+            signInIntentSender?.let {
+                signInLauncher.launch(
+                    IntentSenderRequest.Builder(it).build()
+                )
             }
+        }
 
     }
 
